@@ -12,22 +12,21 @@
         font: 13px Helvetica, Arial;
       }
       form {
-        background: #000;
         padding: 3px;
         position: fixed;
         bottom: 0;
         width: 100%;
       }
       form input {
-        border: 0;
+        border: 1;
         padding: 10px;
-        width: 90%;
+        width: 35%;
         margin-right: 0.5%;
       }
       form button {
         width: 9%;
         background: rgb(130, 224, 255);
-        border: none;
+        border: 1;
         padding: 10px;
       }
       #messages {
@@ -41,28 +40,109 @@
       #messages li:nth-child(odd) {
         background: #eee;
       }
+      .italic {
+        font-style: italic;
+      }
+      .infoColor {
+        color: green;
+      }
+      .errorColor {
+        color: red;
+      }
     </style>
   </head>
   <body>
     <ul id="messages"></ul>
+
     <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+      <p id="message"></p>
+      <span>My nick:</span>
+      <input id="nick" autocomplete="off" type="text" value="User" size="20" />
+      <button id="connect">
+        Connect
+      </button>
+      <input id="m" autocomplete="off" type="text" />
+      <button id="send">
+        Send
+      </button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
-      $(function() {
-        var socket = io();
-        $('form').submit(function(e) {
-          e.preventDefault();
-          socket.emit('chat message', $('#m').val());
-          $('#m').val('');
-          return false;
-        });
-        socket.on('chat message', function(msg) {
-          $('#messages').append($('<li>').text(msg));
-        });
+      var socket = false;
+
+      $('#connect').click(function(e) {
+        e.preventDefault();
+
+        if (!socket) {
+          console.log('socket je bio false');
+
+          socket = io({ autoConnect: false });
+
+          socket.on('chat message', (msg, callback) => {
+            $('#messages').append($('<li>').text(msg.nick + ':' + msg.message));
+          });
+
+          socket.on('new user', (msg, callback) => {
+            console.log(msg.message);
+
+            $('#messages').append(
+              $('<li class="italic">').text(msg.message + ' ' + msg.userId)
+            );
+          });
+
+          connectUser();
+        } else {
+          if (socket.connected) {
+            disconnectUser();
+          } else {
+            connectUser();
+          }
+        }
       });
+
+      function connectUser() {
+        socket.open();
+        let userId = socket._id;
+        showMessage($('#nick').val() + ' ' + userId + ' connected.', 1);
+        $('#connect').text('Disconnect');
+      }
+
+      function disconnectUser() {
+        socket.close();
+        showMessage($('#nick').val() + ' disconnected.', 0);
+        $('#connect').text('Connect');
+      }
+
+      $('#send').click(function(e) {
+        e.preventDefault();
+        if (socket.connected) {
+          socket.emit('chat message', {
+            message: $('#m').val(),
+            nick: $('#nick').val()
+          });
+          $('#m').val('');
+        } else {
+          showMessage('Not connected!', 0);
+        }
+
+        return false;
+      });
+
+      var messageTimer;
+      function showMessage(message, type) {
+        if (type === 0) {
+          $('#message').attr('class', 'errorColor');
+        }
+        if (type === 1) {
+          $('#message').attr('class', 'infoColor');
+        }
+        $('#message').text(message);
+        clearTimeout(messageTimer);
+        messageTimer = setTimeout(() => {
+          $('#message').text('');
+        }, 3000);
+      }
     </script>
   </body>
 </html>

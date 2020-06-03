@@ -56,20 +56,23 @@
 
     <form action="">
       <p id="message"></p>
+
+      <input id="m" autocomplete="off" type="text" />
+      <button id="send">
+        Send
+      </button>
+
       <span>My nick:</span>
       <input id="nick" autocomplete="off" type="text" value="User" size="20" />
       <button id="connect">
         Connect
-      </button>
-      <input id="m" autocomplete="off" type="text" />
-      <button id="send">
-        Send
       </button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
       var socket = false;
+      var users = {};
 
       $('#connect').click(function(e) {
         e.preventDefault();
@@ -91,6 +94,11 @@
             );
           });
 
+          socket.on('svi useri', useri => {
+            console.log('svi useri');
+            console.log(useri);
+          });
+
           connectUser();
         } else {
           if (socket.connected) {
@@ -103,9 +111,14 @@
 
       function connectUser() {
         socket.open();
-        let userId = socket._id;
-        showMessage($('#nick').val() + ' ' + userId + ' connected.', 1);
+        let userId = socket.id;
+        let nick = $('#nick').val();
+        showMessage(nick + ' ' + userId + ' connected.', 1);
         $('#connect').text('Disconnect');
+        users[userId] = { name: nick };
+        console.log('svi useri');
+        console.log(users);
+        socket.emit('svi useri', users);
       }
 
       function disconnectUser() {

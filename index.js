@@ -1,6 +1,7 @@
 var app = require('express')();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+var users = {};
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
@@ -8,18 +9,17 @@ app.get('/', (req, res) => {
 
 io.on('connection', socket => {
   console.log('a user connected');
-  io.emit('new user', {
-    userId: socket.id,
-    message: 'a user connected'
-  });
-  console.log(socket.id);
+  users[socket.id] = { name: '' };
+  io.emit('new user', {});
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    let userId = socket.id;
+    console.log('user disconnected ' + userId);
+    delete users[userId];
     //socket.broadcast.emit();
   });
 
-  socket.on('chat message', msg => {
+  socket.on('chat message', function(msg) {
     io.emit('chat message', msg);
   });
 });

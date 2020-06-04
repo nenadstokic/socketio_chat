@@ -71,69 +71,58 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
-      var socket = false;
+      var socket = io({ autoConnect: false });
       var users = {};
+      var socketid;
+
+      socket.on('connect', () => {
+        socketid = socket.id;
+        console.log(socketid);
+      });
+
+      socket.on('chat message', (msg, callback) => {
+        //
+      });
+
+      socket.on('incomingMessage', msg => {
+        $('#messages').append($('<li>').text(msg.nick + ':' + msg.message));
+      });
+
+      socket.on('new user', (msg, callback) => {
+        console.log(msg.message);
+
+        $('#messages').append(
+          $('<li class="italic">').text(msg.message + ' ' + msg.userId)
+        );
+      });
+
+      socket.on('allUsers', useri => {
+        users = { useri };
+        console.log('svi useri');
+        console.log(useri);
+      });
 
       $('#connect').click(function(e) {
         e.preventDefault();
-
-        if (!socket) {
-          console.log('socket je bio false');
-
-          socket = io({ autoConnect: false });
-
-          socket.on('chat message', (msg, callback) => {
-            $('#messages').append($('<li>').text(msg.nick + ':' + msg.message));
-          });
-
-          socket.on('new user', (msg, callback) => {
-            console.log(msg.message);
-
-            $('#messages').append(
-              $('<li class="italic">').text(msg.message + ' ' + msg.userId)
-            );
-          });
-
-          socket.on('svi useri', useri => {
-            console.log('svi useri');
-            console.log(useri);
-          });
-
-          connectUser();
+        if (socket.connected) {
+          disconnectUser(socketid);
         } else {
-          if (socket.connected) {
-            disconnectUser();
-          } else {
-            connectUser();
-          }
+          connectUser();
+          console.log('ssssss ' + socketid);
         }
       });
-
-      function connectUser() {
-        socket.open();
-        let userId = socket.id;
-        let nick = $('#nick').val();
-        showMessage(nick + ' ' + userId + ' connected.', 1);
-        $('#connect').text('Disconnect');
-        users[userId] = { name: nick };
-        console.log('svi useri');
-        console.log(users);
-        socket.emit('svi useri', users);
-      }
-
-      function disconnectUser() {
-        socket.close();
-        showMessage($('#nick').val() + ' disconnected.', 0);
-        $('#connect').text('Connect');
-      }
 
       $('#send').click(function(e) {
         e.preventDefault();
         if (socket.connected) {
-          socket.emit('chat message', {
-            message: $('#m').val(),
-            nick: $('#nick').val()
+          let msg = $('#m').val();
+          let nick = $('#nick').val();
+
+          socket.emit('newMessage', {
+            message: msg,
+            nick: nick
           });
+          $('#messages').append($('<li>').text(nick + ':' + msg));
           $('#m').val('');
         } else {
           showMessage('Not connected!', 0);
@@ -141,6 +130,29 @@
 
         return false;
       });
+
+      function connectUser() {
+        console.log('connectUser');
+        socket.open();
+        userId = socket.id;
+        let nick = $('#nick').val();
+        showMessage('Connected.', 1);
+        $('#connect').text('Disconnect');
+        users[userId] = { nick: nick };
+        //console.log('svi useri');
+        //console.log(users);
+        socket.emit('connectUser', userId, nick);
+        // userId: userId,
+        // nick: nick
+        //userId: 345345,
+        //nick: 'Nicky'
+      }
+
+      function disconnectUser(id) {
+        showMessage('Disconnected.', 0);
+        $('#connect').text('Connect');
+        socket.close();
+      }
 
       var messageTimer;
       function showMessage(message, type) {

@@ -8,19 +8,40 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', socket => {
-  console.log('a user connected');
-  users[socket.id] = { name: '' };
-  io.emit('new user', {});
+  console.log('socketio connection');
+
+  socket.on('connectUser', (id, nick) => {
+    console.log('connectUser došao iz klijenta');
+    console.log(id);
+    console.log(nick);
+    users[id] = {
+      userId: id,
+      nick: nick
+    };
+    //console.log(users);
+
+    socket.broadcast.emit('allUsers', { users });
+  });
+
+  // socket.on('disconnectUser', user => {
+  //   let msg = user.nick + ' has left.';
+  //   socket.broadcast.emit('incomingMessage', msg);
+  // });
 
   socket.on('disconnect', () => {
     let userId = socket.id;
+    //console.log('svi useri');
+    //console.log(users);
+
+    let msg = 'user has left.';
+    socket.broadcast.emit('incomingMessage', msg);
     console.log('user disconnected ' + userId);
     delete users[userId];
     //socket.broadcast.emit();
   });
 
-  socket.on('chat message', function(msg) {
-    io.emit('chat message', msg);
+  socket.on('newMessage', msg => {
+    socket.broadcast.emit('incomingMessage', msg);
   });
 });
 

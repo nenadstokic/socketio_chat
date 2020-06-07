@@ -46,11 +46,11 @@ form button {
   flex-direction: column-reverse;
   float: left;
 }
-#notification {
-  min-height: 10px;
+.notification {
+  min-height: 1rem;
   width: 100%;
-  display: block;
-  background-color: blueviolet;
+  background-color: lightblue;
+  display: flex;
 }
 .participants {
   width: 30%;
@@ -59,6 +59,7 @@ form button {
   flex-direction: column-reverse;
   float: right;
   border: 1px solid black;
+  overflow-y: scroll;
 }
 .italic {
   font-style: italic;

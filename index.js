@@ -21,20 +21,15 @@ io.on('connection', function(socket) {
   };
   users[socket.id] = user;
 
-  console.log(users);
-
   io.emit('newUser', users, socket.id);
 
   socket.on('nickChanged', function(name) {
-    console.log('new name of ' + socket.id + ' is ' + name);
     io.emit('newName', socket.id, name);
   });
 
   socket.on('disconnect', function() {
-    //console.log(users[socket.id].name + ' with id ' + socket.id + ' has left.');
     delete users[socket.id];
     io.emit('userGone', socket.id);
-    console.log('deleting ' + socket.id);
   });
 
   socket.on('newMessage', msg => {
@@ -42,7 +37,6 @@ io.on('connection', function(socket) {
   });
 
   socket.on('userInputDetected', id => {
-    console.log('user ' + id + ' is typing...');
     socket.broadcast.emit('userIsTyping', id);
   });
 });

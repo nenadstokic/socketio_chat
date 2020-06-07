@@ -3,8 +3,9 @@ $(function() {
   var users = {};
 
   socket.on('userGone', id => {
-    // $('#participants>li:contains(users[id])').remove();
-    showMessage(users[id].name + ' has left the chat.', 0);
+    $('#messages').append(
+      $('<li class="italic">').text(users[id].name + ' left the chat.')
+    );
     delete users[id];
     refreshUserlist(users);
   });
@@ -15,12 +16,6 @@ $(function() {
       $('<li class="italic">').text(user.name + ' has just logged in.')
     );
     refreshUserlist(allusers);
-
-    // users.keys.forEach((singleuser, counter) => {
-    //   $('#participants').append($('<li>').text(counter + ' ' + singleuser));
-    // });
-
-    console.log(users);
   });
 
   socket.on('incomingMessage', (msg, id) => {
@@ -38,14 +33,11 @@ $(function() {
   });
 
   socket.on('userIsTyping', id => {
-    console.log(users[id].name + ' is typing...');
-
     var selector = '#participants>li:contains(' + users[id].name + ')'; //  'p:contains(' + vtxt + ')';
-
     $(selector).text(users[id].name + ' is typing...');
+    showMessage(users[id].name + ' is typing...', 1, 1000);
     setTimeout(function() {
       $(selector).text(users[id].name);
-      console.log(users[id].name + ' stopped typing...');
     }, 2000);
   });
 
@@ -67,11 +59,11 @@ $(function() {
 
   $('#m').on('input', function() {
     socket.emit('userInputDetected', socket.id);
-    console.log(socket.id);
   });
 
   var messageTimer;
-  function showMessage(message, type) {
+  function showMessage(message, type, duration) {
+    if (!duration) duration = 3000;
     if (type === 0) {
       $('#notification').attr('class', 'errorColor');
     }
@@ -82,14 +74,13 @@ $(function() {
     clearTimeout(messageTimer);
     messageTimer = setTimeout(() => {
       $('#notification').text('');
-    }, 3000);
+    }, duration);
   }
 
   function refreshUserlist(obj) {
     $('#participants').empty();
     for (let u in obj) {
       $('#participants').append($('<li>').text(obj[u].name));
-      //console.log(u, allusers[u]);
     }
   }
 });

@@ -2,172 +2,32 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font: 13px Helvetica, Arial;
-      }
-      form {
-        padding: 3px;
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-      }
-      form input {
-        border: 1;
-        padding: 10px;
-        width: 35%;
-        margin-right: 0.5%;
-      }
-      form button {
-        width: 9%;
-        background: rgb(130, 224, 255);
-        border: 1;
-        padding: 10px;
-      }
-      #messages {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-      }
-      #messages li {
-        padding: 5px 10px;
-      }
-      #messages li:nth-child(odd) {
-        background: #eee;
-      }
-      .italic {
-        font-style: italic;
-      }
-      .infoColor {
-        color: green;
-      }
-      .errorColor {
-        color: red;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="/css/style.css" />
   </head>
   <body>
-    <ul id="messages"></ul>
+    <div class="messages">
+      <ul id="messages"></ul>
+    </div>
+
+    <div class="participants">
+      <ul id="participants"></ul>
+    </div>
 
     <form action="">
-      <p id="message"></p>
+      <p id="notification"></p>
 
       <input id="m" autocomplete="off" type="text" />
       <button id="send">
         Send
       </button>
 
-      <span>My nick:</span>
-      <input id="nick" autocomplete="off" type="text" value="User" size="20" />
-      <button id="connect">
-        Connect
+      <button id="nick">
+        Change nickname
       </button>
     </form>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script>
-      var socket = io({ autoConnect: false });
-      var users = {};
-      var socketid;
-
-      socket.on('connect', () => {
-        socketid = socket.id;
-        console.log(socketid);
-      });
-
-      socket.on('chat message', (msg, callback) => {
-        //
-      });
-
-      socket.on('incomingMessage', msg => {
-        $('#messages').append($('<li>').text(msg.nick + ':' + msg.message));
-      });
-
-      socket.on('new user', (msg, callback) => {
-        console.log(msg.message);
-
-        $('#messages').append(
-          $('<li class="italic">').text(msg.message + ' ' + msg.userId)
-        );
-      });
-
-      socket.on('allUsers', useri => {
-        users = { useri };
-        console.log('svi useri');
-        console.log(useri);
-      });
-
-      $('#connect').click(function(e) {
-        e.preventDefault();
-        if (socket.connected) {
-          disconnectUser(socketid);
-        } else {
-          connectUser();
-          console.log('ssssss ' + socketid);
-        }
-      });
-
-      $('#send').click(function(e) {
-        e.preventDefault();
-        if (socket.connected) {
-          let msg = $('#m').val();
-          let nick = $('#nick').val();
-
-          socket.emit('newMessage', {
-            message: msg,
-            nick: nick
-          });
-          $('#messages').append($('<li>').text(nick + ':' + msg));
-          $('#m').val('');
-        } else {
-          showMessage('Not connected!', 0);
-        }
-
-        return false;
-      });
-
-      function connectUser() {
-        console.log('connectUser');
-        socket.open();
-        userId = socket.id;
-        let nick = $('#nick').val();
-        showMessage('Connected.', 1);
-        $('#connect').text('Disconnect');
-        users[userId] = { nick: nick };
-        //console.log('svi useri');
-        //console.log(users);
-        socket.emit('connectUser', userId, nick);
-        // userId: userId,
-        // nick: nick
-        //userId: 345345,
-        //nick: 'Nicky'
-      }
-
-      function disconnectUser(id) {
-        showMessage('Disconnected.', 0);
-        $('#connect').text('Connect');
-        socket.close();
-      }
-
-      var messageTimer;
-      function showMessage(message, type) {
-        if (type === 0) {
-          $('#message').attr('class', 'errorColor');
-        }
-        if (type === 1) {
-          $('#message').attr('class', 'infoColor');
-        }
-        $('#message').text(message);
-        clearTimeout(messageTimer);
-        messageTimer = setTimeout(() => {
-          $('#message').text('');
-        }, 3000);
-      }
-    </script>
+    <script src="/js/clientjs.js"></script>
   </body>
 </html>

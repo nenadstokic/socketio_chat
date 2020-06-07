@@ -1,47 +1,49 @@
-var app = require('express')();
+const express = require('express');
+const app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
-var users = {};
+const randomname = require('random-name');
+
+let users = {};
+
+app.use(express.static(__dirname + '/public'));
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-io.on('connection', socket => {
-  console.log('socketio connection');
+io.on('connection', function(socket) {
+  console.log('new socketio connection ' + socket.id);
 
-  socket.on('connectUser', (id, nick) => {
-    console.log('connectUser došao iz klijenta');
-    console.log(id);
-    console.log(nick);
-    users[id] = {
-      userId: id,
-      nick: nick
-    };
-    //console.log(users);
+  let user = {
+    name: randomname.first(),
+    messages: 0
+  };
+  users[socket.id] = user;
 
-    socket.broadcast.emit('allUsers', { users });
+  console.log(users);
+
+  io.emit('newUser', users, socket.id);
+
+  socket.on('nickChanged', function(name) {
+    console.log('new name of ' + socket.id + ' is ' + name);
+    io.emit('newName', socket.id, name);
   });
 
-  // socket.on('disconnectUser', user => {
-  //   let msg = user.nick + ' has left.';
-  //   socket.broadcast.emit('incomingMessage', msg);
-  // });
-
-  socket.on('disconnect', () => {
-    let userId = socket.id;
-    //console.log('svi useri');
-    //console.log(users);
-
-    let msg = 'user has left.';
-    socket.broadcast.emit('incomingMessage', msg);
-    console.log('user disconnected ' + userId);
-    delete users[userId];
-    //socket.broadcast.emit();
+  socket.on('disconnect', function() {
+    //console.log(users[socket.id].name + ' with id ' + socket.id + ' has left.');
+    delete users[socket.id];
+    io.emit('userGone', socket.id);
+    console.log('deleting ' + socket.id);
   });
 
   socket.on('newMessage', msg => {
-    socket.broadcast.emit('incomingMessage', msg);
+    socket.broadcast.emit('incomingMessage', msg, socket.id);
+  });
+
+  socket.on('userInputDetected', id => {
+    console.log('user ' + id + ' is typing...');
+    socket.broadcast.emit('userIsTyping', id);
   });
 });
 

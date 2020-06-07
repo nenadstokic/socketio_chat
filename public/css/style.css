@@ -1,0 +1,71 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font: 13px Helvetica, Arial;
+}
+form {
+  padding: 3px;
+  /*
+  position: fixed;
+  bottom: 0;
+  */
+  width: 100%;
+}
+form input {
+  border: 1;
+  padding: 10px;
+  width: 35%;
+  margin-right: 0.5%;
+}
+form button {
+  /* width: 9%; */
+  background: rgb(130, 224, 255);
+  border: 1;
+  padding: 10px;
+}
+#messages {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+#messages li {
+  padding: 5px 10px;
+}
+#messages li:nth-child(odd) {
+  background: #eee;
+}
+.messages {
+  width: 70%;
+  height: 300px;
+  border: 1px solid black;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column-reverse;
+  float: left;
+}
+#notification {
+  min-height: 10px;
+  width: 100%;
+  display: block;
+  background-color: blueviolet;
+}
+.participants {
+  width: 30%;
+  height: 300px;
+  display: flex;
+  flex-direction: column-reverse;
+  float: right;
+  border: 1px solid black;
+}
+.italic {
+  font-style: italic;
+}
+.infoColor {
+  color: green;
+}
+.errorColor {
+  color: red;
+}
